@@ -9,24 +9,11 @@ import java.util.stream.Stream;
 public class Column {
     private Cell[] cells;
 
-    public static Column parse(String input) {
-        Cell[] cells = Arrays.stream(input.split(",")).map(Cell::of).toArray(Cell[]::new);
-
-        return new Column(cells);
-    }
-
     public Column(Cell[] cells) {
         if (cells.length != 9) {
             throw new IllegalArgumentException("A column needs 9 cells");
         }
         this.cells = cells;
-    }
-
-    public Column(Cell[] cells1, Cell[] cells2, Cell[] cells3) {
-        if (cells1.length != 3 || cells2.length != 3 || cells3.length != 3 ) {
-            throw new IllegalArgumentException("A column needs 9 cells");
-        }
-        this.cells = Stream.of(cells1, cells2, cells3).flatMap(Stream::of).toArray(Cell[]::new);
     }
 
     public Cell getRow(int i) {
@@ -48,9 +35,14 @@ public class Column {
     public boolean isValid() {
         return Arrays.stream(cells)
                 .filter(Cell::hasValue)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .collect(Collectors.groupingBy(Cell::getValue, Collectors.counting()))
                 .entrySet()
                 .stream()
                 .noneMatch(e -> e.getValue() > 1);
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.stream(cells).map(Cell::getValue).collect(Collectors.joining("-"));
     }
 }

@@ -10,30 +10,40 @@ public class Cell {
     private String value;
     private final Set<String> possibleValues = new HashSet<>(RUNES);
 
-    private Cell() {
+    private final int column;
+    private final int row;
+
+    private Cell(int column, int row) {
+        this.row = row;
+        this.column = column;
     }
 
-    private Cell(String value) {
+    private Cell(String value, int column, int row) {
         if (!RUNES.contains(value)) {
             throw new IllegalArgumentException(String.format("Unknown value for cell %s", value));
         }
         this.value = value;
+        this.row = row;
+        this.column = column;
         this.possibleValues.clear();
     }
 
-    public static Cell empty() {
-        return new Cell();
+    public static Cell empty(int column, int row) {
+        return new Cell(column, row);
     }
 
-    public static Cell of(String value) {
+    public static Cell of(String value, int column, int row) {
         Objects.requireNonNull(value);
         if (EMPTY_RUNE.equalsIgnoreCase(value)) {
-            return Cell.empty();
+            return Cell.empty(column, row);
         }
-        return new Cell(value);
+        return new Cell(value, column, row);
     }
 
     public String getValue() {
+        if (value == null) {
+            return EMPTY_RUNE;
+        }
         return value;
     }
 
@@ -54,12 +64,21 @@ public class Cell {
             return false;
         }
         final Cell cell = (Cell) o;
-        return value.equals(cell.value);
+        return column == cell.column &&
+                row == cell.row;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(column, row);
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+    public int getRow() {
+        return row;
     }
 
     public Set<String> getPossibleValues() {
@@ -74,11 +93,23 @@ public class Cell {
         return possibleValues.size() == 1;
     }
 
+    public boolean solve() {
+        if (isSolvable()) {
+            System.out.println(String.format("Solved %s", this));
+            value = possibleValues.iterator().next();
+            possibleValues.remove(value);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return "Cell{" +
                 "value='" + value + '\'' +
                 ", possibleValues=" + possibleValues +
+                ", column=" + column +
+                ", row=" + row +
                 '}';
     }
 }

@@ -62,7 +62,7 @@ class BoardTest {
                         "x,x,x,x,x,2,x,5,1," +
                         "x,5,3,x,7,x,x,x,x," +
                         "x,8,x,9,2,x,1,x,x," +
-                        "x,7,9,x,1,x,x,8,x," +
+                        "x,7,9,x,x,x,x,8,x," +
                         "x,x,4,8,5,3,x,x,6";
         Board b = Board.parse(input);
         assertThat(b.isValid()).isFalse();

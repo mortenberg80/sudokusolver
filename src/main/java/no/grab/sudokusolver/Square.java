@@ -2,9 +2,7 @@ package no.grab.sudokusolver;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Square {
     private Cell[] cells;
@@ -14,22 +12,6 @@ public class Square {
             throw new IllegalArgumentException("A square needs 9 cells");
         }
         this.cells = cells;
-    }
-
-    public Square(Cell[] cells1, Cell[] cells2, Cell[] cells3) {
-        if (cells1.length != 3 || cells2.length != 3 || cells3.length != 3 ) {
-            throw new IllegalArgumentException("A square needs 9 cells");
-        }
-        this.cells = Stream.of(cells1, cells2, cells3).flatMap(Stream::of).toArray(Cell[]::new);
-    }
-
-    public static Square parse(String csv) {
-        String[] v = csv.split(",");
-        return new Square(new Cell[]{
-                Cell.of(v[0]), Cell.of(v[1]), Cell.of(v[2]),
-                Cell.of(v[3]), Cell.of(v[4]), Cell.of(v[5]),
-                Cell.of(v[6]), Cell.of(v[7]), Cell.of(v[8])
-        });
     }
 
     public Cell[] getCells() {
@@ -77,7 +59,7 @@ public class Square {
     public boolean isValid() {
         return Arrays.stream(cells)
                 .filter(Cell::hasValue)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .collect(Collectors.groupingBy(Cell::getValue, Collectors.counting()))
                 .entrySet()
                 .stream()
                 .noneMatch(e -> e.getValue() > 1);

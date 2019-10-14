@@ -1,139 +1,169 @@
 package no.grab.sudokusolver;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 public class Board {
-    private Square[] squares;
-    private Column[] columns;
-    private Row[] rows;
+    private static final int BOARD_SIZE = 9;
+
+    private Set<Cell> cells;
 
     public static Board parse(String input) {
-        Cell[] cells = Arrays.stream(input.split(",")).map(Cell::of).toArray(Cell[]::new);
-        Row row0 = new Row(Arrays.stream(cells, 0, 9).toArray(Cell[]::new));
-        Row row1 = new Row(Arrays.stream(cells, 9, 18).toArray(Cell[]::new));
-        Row row2 = new Row(Arrays.stream(cells, 18, 27).toArray(Cell[]::new));
-        Row row3 = new Row(Arrays.stream(cells, 27, 36).toArray(Cell[]::new));
-        Row row4 = new Row(Arrays.stream(cells, 36, 45).toArray(Cell[]::new));
-        Row row5 = new Row(Arrays.stream(cells, 45, 54).toArray(Cell[]::new));
-        Row row6 = new Row(Arrays.stream(cells, 54, 63).toArray(Cell[]::new));
-        Row row7 = new Row(Arrays.stream(cells, 63, 72).toArray(Cell[]::new));
-        Row row8 = new Row(Arrays.stream(cells, 72, 81).toArray(Cell[]::new));
-
-        Row[] rows = new Row[] {
-                row0,
-                row1,
-                row2,
-                row3,
-                row4,
-                row5,
-                row6,
-                row7,
-                row8
-        };
-        return new Board(rows);
-    }
-
-    public Board(Row[] rows) {
-        if (rows.length != 9) {
-            throw new IllegalArgumentException("A board needs 9 rows");
+        Set<Cell> cells = new HashSet<>();
+        String[] inputValues = input.split(",");
+        for (int i = 0; i < inputValues.length; i++) {
+            int row = i / BOARD_SIZE;
+            int column = i % BOARD_SIZE;
+            cells.add(Cell.of(inputValues[i], column, row));
         }
-        this.rows = rows;
-        this.squares = toSquares(rows);
-        this.columns = toColumns(squares);
+
+        return new Board(cells);
     }
 
-    public static Square[] toSquares(Row[] rows) {
-        return new Square[] {
-                new Square(rows[0].subCells(0, 3), rows[1].subCells(0, 3), rows[2].subCells(0, 3)),
-                new Square(rows[0].subCells(3, 6), rows[1].subCells(3, 6), rows[2].subCells(3, 6)),
-                new Square(rows[0].subCells(6, 9), rows[1].subCells(6, 9), rows[2].subCells(6, 9)),
-                new Square(rows[3].subCells(0, 3), rows[4].subCells(0, 3), rows[5].subCells(0, 3)),
-                new Square(rows[3].subCells(3, 6), rows[4].subCells(3, 6), rows[5].subCells(3, 6)),
-                new Square(rows[3].subCells(6, 9), rows[4].subCells(6, 9), rows[5].subCells(6, 9)),
-                new Square(rows[6].subCells(0, 3), rows[7].subCells(0, 3), rows[8].subCells(0, 3)),
-                new Square(rows[6].subCells(3, 6), rows[7].subCells(3, 6), rows[8].subCells(3, 6)),
-                new Square(rows[6].subCells(6, 9), rows[7].subCells(6, 9), rows[8].subCells(6, 9))
-        };
-    }
-
-    public static Column[] toColumns(Square[] squares) {
-        return new Column[]{
-                new Column(squares[0].getColumn(0), squares[3].getColumn(0), squares[6].getColumn(0)),
-                new Column(squares[0].getColumn(1), squares[3].getColumn(1), squares[6].getColumn(1)),
-                new Column(squares[0].getColumn(2), squares[3].getColumn(2), squares[6].getColumn(2)),
-                new Column(squares[1].getColumn(0), squares[4].getColumn(0), squares[7].getColumn(0)),
-                new Column(squares[1].getColumn(1), squares[4].getColumn(1), squares[7].getColumn(1)),
-                new Column(squares[1].getColumn(2), squares[4].getColumn(2), squares[7].getColumn(2)),
-                new Column(squares[2].getColumn(0), squares[5].getColumn(0), squares[8].getColumn(0)),
-                new Column(squares[2].getColumn(1), squares[5].getColumn(1), squares[8].getColumn(1)),
-                new Column(squares[2].getColumn(2), squares[5].getColumn(2), squares[8].getColumn(2))
-        };
-    }
-
-    public Board(Square[] squares) {
-        if (squares.length != 9) {
-            throw new IllegalArgumentException("A board needs 9 squares");
-        }
-        this.squares = squares;
-        this.columns = toColumns(squares);
-
-        this.rows = new Row[]{
-                new Row(squares[0].getRow(0), squares[1].getRow(0), squares[2].getRow(0)),
-                new Row(squares[0].getRow(1), squares[1].getRow(1), squares[2].getRow(1)),
-                new Row(squares[0].getRow(2), squares[1].getRow(2), squares[2].getRow(2)),
-                new Row(squares[3].getRow(0), squares[4].getRow(0), squares[5].getRow(0)),
-                new Row(squares[3].getRow(1), squares[4].getRow(1), squares[5].getRow(1)),
-                new Row(squares[3].getRow(2), squares[4].getRow(2), squares[5].getRow(2)),
-                new Row(squares[6].getRow(0), squares[7].getRow(0), squares[8].getRow(0)),
-                new Row(squares[6].getRow(1), squares[7].getRow(1), squares[8].getRow(1)),
-                new Row(squares[6].getRow(2), squares[7].getRow(2), squares[8].getRow(2))
-        };
-    }
-
-    public Square[] getSquares() {
-        return squares;
-    }
-
-    public Column[] getColumns() {
-        return columns;
+    public Board(Set<Cell> cells) {
+        this.cells = cells;
     }
 
     public Column getColumn(int i) {
-        return columns[i];
-    }
-
-    public Row[] getRows() {
-        return rows;
+        Cell[] columnCells = this.cells.stream()
+                .filter(c -> c.getColumn() == i)
+                .toArray(Cell[]::new);
+        return new Column(columnCells);
     }
 
     public Row getRow(int i) {
-        return rows[i];
+        Cell[] rowCells = this.cells.stream()
+                .filter(c -> c.getRow() == i)
+                .toArray(Cell[]::new);
+        return new Row(rowCells);
+    }
+
+    public Square getSquare(int i) {
+        switch (i) {
+            case 0:
+                return getSquare(0, 0);
+            case 1:
+                return getSquare(1,0);
+            case 2:
+                return getSquare(2,0);
+            case 3:
+                return getSquare(0,1);
+            case 4:
+                return getSquare(1,1);
+            case 5:
+                return getSquare(2,1);
+            case 6:
+                return getSquare(0,2);
+            case 7:
+                return getSquare(1,2);
+            case 8:
+                return getSquare(2,2);
+            default:
+                throw new IllegalStateException(String.format("unknown square %d", i));
+        }
+    }
+
+    public Square getSquare(int column, int row) {
+        int columnFrom = column * 3; // 0 => 0, 1 => 3, 2 => 6
+        int columnTo = column * 3 + 2; // 0 => 2, 1 => 5, 2 => 8
+        int rowFrom = row * 3;
+        int rowTo = row * 3 + 2;
+        Cell[] cells = this.cells.stream()
+                .filter(c -> c.getRow() >= rowFrom &&
+                        c.getRow() <= rowTo &&
+                        c.getColumn() >= columnFrom &&
+                        c.getColumn() <= columnTo)
+                .toArray(Cell[]::new);
+        return new Square(cells);
     }
 
     public boolean isValid() {
-        boolean validRows = Arrays.stream(rows).allMatch(Row::isValid);
-        boolean validColumns = Arrays.stream(columns).allMatch(Column::isValid);
-        boolean validSquares = Arrays.stream(squares).allMatch(Square::isValid);
+        boolean validRows = true;
+        boolean validColumns = true;
+        boolean validSquares = true;
+        for(int i = 0; i < BOARD_SIZE; i++) {
+            validRows = validRows && getRow(i).isValid();
+            validColumns = validColumns && getColumn(i).isValid();
+            validSquares = validSquares && getSquare(i).isValid();
+        }
+
         return validRows && validColumns && validSquares;
     }
 
     public Cell get(int x, int y) {
-        return getColumn(x).getRow(y);
+        return this.cells.stream()
+                .filter(c -> c.getColumn() == x && c.getRow() == y)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(String.format("Could not find cell at column=%s, row=%s", x, y)));
+    }
+
+    public Set<Row> getRows() {
+        return IntStream.range(0, 9)
+                .mapToObj(this::getRow)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<Column> getColumns() {
+        return IntStream.range(0, 9)
+                .mapToObj(this::getColumn)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<Square> getSquares() {
+        return IntStream.range(0, 9)
+                .mapToObj(this::getSquare)
+                .collect(Collectors.toSet());
     }
 
     public void runPossibleValues() {
-        Arrays.stream(rows).forEach(Row::calculatePossibleValues);
-        Arrays.stream(columns).forEach(Column::calculatePossibleValues);
-        Arrays.stream(squares).forEach(Square::calculatePossibleValues);
+        getRows().forEach(Row::calculatePossibleValues);
+        getColumns().forEach(Column::calculatePossibleValues);
+        getSquares().forEach(Square::calculatePossibleValues);
     }
 
     public Set<Cell> solvables() {
-        return Arrays.stream(rows)
+        return getRows().stream()
                 .flatMap(r -> r.cellStream())
                 .filter(c -> c.isSolvable())
                 .collect(Collectors.toSet());
+    }
+
+    public void solve() {
+        solvables().forEach(Cell::solve);
+    }
+
+    public String getPrintableRow(int i) {
+        return String.format("|%s|%s|%s| |%s|%s|%s| |%s|%s|%s|\n",
+                             getRow(i).getColumn(0).getValue(),
+                             getRow(i).getColumn(1).getValue(),
+                             getRow(i).getColumn(2).getValue(),
+                             getRow(i).getColumn(3).getValue(),
+                             getRow(i).getColumn(4).getValue(),
+                             getRow(i).getColumn(5).getValue(),
+                             getRow(i).getColumn(6).getValue(),
+                             getRow(i).getColumn(7).getValue(),
+                             getRow(i).getColumn(8).getValue());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        String spacer = "+-+-+-+ +-+-+-+ +-+-+-+\n";
+        builder.append(spacer);
+        builder.append(getPrintableRow(0));
+        builder.append(getPrintableRow(1));
+        builder.append(getPrintableRow(2));
+        builder.append(spacer);
+        builder.append(getPrintableRow(3));
+        builder.append(getPrintableRow(4));
+        builder.append(getPrintableRow(5));
+        builder.append(spacer);
+        builder.append(getPrintableRow(6));
+        builder.append(getPrintableRow(7));
+        builder.append(getPrintableRow(8));
+        builder.append(spacer);
+        return builder.toString();
     }
 }
