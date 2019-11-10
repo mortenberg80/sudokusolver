@@ -125,8 +125,8 @@ public class Board {
 
     public Set<Cell> solvables() {
         return getRows().stream()
-                .flatMap(r -> r.cellStream())
-                .filter(c -> c.isSolvable())
+                .flatMap(Row::cellStream)
+                .filter(Cell::isSolvable)
                 .collect(Collectors.toSet());
     }
 
